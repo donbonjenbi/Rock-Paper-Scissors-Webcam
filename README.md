@@ -26,6 +26,9 @@ It uses tensorflow.keras for model training, and tensorflowjs for model deployme
 ## To train a model
 - start your virtualenv
 - navigate to the `/model_training` directory
+```
+cd model_training
+```
 - install required packages with pip: 
 ```
 pip install -r requirements.txt
@@ -58,7 +61,7 @@ python train_model.py
 
 
 ## To deploy the code & run on your local host
-- Either use the default model, or replace the model files in `/RPS_webcam_js/RPS_webcam/static/models` with your preferred version.  
+- Either use the default model contained in `/RPS_webcam_js/RPS_webcam/static/models`, or replace the model files with a new version.  
 - start your virtualenv
 - navigate to the `/RPS_webcam_js` directory:  
 ```
