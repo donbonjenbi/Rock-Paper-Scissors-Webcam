@@ -33,8 +33,10 @@ cd model_training
 ```
 pip install -r requirements.txt
 ```
-- Set the necessary variables for training: 
+- Set the necessary variables for training, within ```model_training/train_model.py```
 ```
+[...]
+
 # Loading the data:  
 # 	if DATA_SOURCE is 'tfds' => downloads the official tfds dataset.  
 # 	if DATA_SOURCE is 'local_folder' => uses dataset contained in LOCAL_DATASET_DIR
@@ -53,6 +55,8 @@ EARLY_STOPPING_PATIENCE = 6
 # Saving the model
 MODEL_NAME = 'RockPaperScissors_model' 
 MODEL_VERSION = 1  				# version_num to use while saving the new model
+
+[...]
 ```
 - run training:
 ```
