@@ -16,10 +16,10 @@ It uses tensorflow.keras for model training, and tensorflowjs for model deployme
 
 
 **The deployment package uses:**
-- flask as the webframework & URL routing
-- openCv.js for image preprocessing
+- Flask for the webframework & URL routing (https://flask.palletsprojects.com/en/1.1.x/)
+- OpenCv.js for image preprocessing (https://docs.opencv.org/3.4/d5/d10/tutorial_js_root.html)
+- tensorflowjs for model deployment (https://www.tensorflow.org/js)
 - `RPS_webcam_js/RPS_webcam/static/script.js` for processing the webcam stream & parsing the predictions
-- tensorflowjs for model deployment
 
 
 
