@@ -2,18 +2,17 @@
 # Rock Paper Scissors Webcam
 This is a project to create a deep learning-based prediction model for real-time predicting "Rock" "Paper" or "Scissors" within a browser's webcam stream.  
 
-To interact with it working live, visit: https://www.donbonjenbi.com
+To interact a live version, visit: https://www.donbonjenbi.com
 
 ![Rock Paper Scissors Example](misc/example_screenshots.png)
 
 It uses tensorflow.keras for model training, and tensorflowjs for model deployment.  
 
-The model consists of: 
-
-	- A MobileNetV2 backbone, starting with weights pre-trained on imagenet (https://www.tensorflow.org/api_docs/python/tf/keras/applications/MobileNetV2)
-	- With the head replaced with our custom output layers 
-	- With the weights re-trained on our custom dataset (/model_training/datasets/donbonjenbi_RPS_dataset2)
-	- and finally converted from keras_model => tfjs for compression & final deployment
+<b>The model consists of:</b>
+- A MobileNetV2 backbone, starting with weights pre-trained on imagenet (https://www.tensorflow.org/api_docs/python/tf/keras/applications/MobileNetV2)
+- With the head replaced with our custom output layers 
+- With the weights re-trained on our custom dataset (/model_training/datasets/donbonjenbi_RPS_dataset2)
+- and finally converted from keras_model => tfjs for compression & final deployment
 
 
 The deployment package uses:
