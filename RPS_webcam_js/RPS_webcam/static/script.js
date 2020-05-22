@@ -1,7 +1,7 @@
 
 const FPS = 30;
-const PRED_RATE = 5; // Hz
 const _CLASSES = ['Rock','Paper','Scissors','None'];
+const PRED_RATE = 5; // Hz.   // Reduced in deployed version to lighten the load on client CPU's, but it can typically run at 30fps.  
 var predicted_class = 'none';
 var preds = [0.25,0.25,0.25,0.25];
 var pred_index = 3;

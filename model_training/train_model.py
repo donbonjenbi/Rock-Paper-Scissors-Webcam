@@ -20,28 +20,24 @@ print("using Tensorflow version: ",tf.__version__)
 print("Using GPU: ", tf.config.experimental.list_physical_devices('GPU'))
 # logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
-DATA_SOURCE = 'tfds'  # either 'tfds' or 'local_folder'
-LOCAL_DATASET_DIR = 'datasets/my_RPS_test_images'
-REFRESH_DATASET = True # turn this to true for the first run colab. loads a local copy of the training data from G-drive to local folder before running training.  
+# Loading the data:  
+# 	if DATA_SOURCE is 'tfds' => downloads the official tfds dataset.  
+# 	if DATA_SOURCE is 'local_folder' => uses dataset contained in LOCAL_DATASET_DIR
+DATA_SOURCE = 'tfds'  
+LOCAL_DATASET_DIR = 'datasets/donbonjenbi_RPS_dataset2'
+CLASS_NAMES = ['rock','paper','scissors','none'] # only grabs from folders that match these names
+REFRESH_DATASET = False # set this to true for the first run colab. it will load a local copy of the training data from G-drive to local folder before running training.  
+
+# Training hyperparameters
+LR_FIRST_ROUND = 0.0001 # typically 0.0001
+EPOCHS_FIRST_ROUND = 1 # typically 10, reduce to 1 for initial test
+LR_SECOND_ROUND = 0.000005  # typically 0.000001 to 0.000005
+EPOCHS_SECOND_ROUND = 1 # typically 200, reduce to 1 for initial test
+EARLY_STOPPING_PATIENCE = 6
+
+# Saving the model
 MODEL_NAME = 'RockPaperScissors_model'
-MODEL_VERSION = 1
-
-
-
-def run():
-	# load the training dataset
-	train_set, val_set, test_set, info = load_and_preprocess_dataset(data_src = DATA_SOURCE)
-	# create and train the model
-	model, base_model = create_model(num_classes = len(info["labels"]))
-	# print(model.summary())
-	train_model(model, base_model, train_set, val_set, test_set, info)
-	# save model locally
-	save_model(model, MODEL_NAME, MODEL_VERSION)
-	# convert to tflite & save
-	tflite_model = convert_to_tflite(model, save_model = True)
-	# convert to tfjs and save
-
-
+MODEL_VERSION = 1  # the to use when saving the model
 
 
 def load_and_preprocess_dataset(data_src = 'tfds'):
@@ -94,8 +90,6 @@ def load_and_preprocess_dataset(data_src = 'tfds'):
 			print("transferring training data from G-drive to local folder in colab...")
 			shutil.copytree(os.path.join('drive/My Drive/Colab Notebooks/',LOCAL_DATASET_DIR),data_dir)
 
-		class_names = ['rock','paper','scissors','none'] # only grabs from folders that match these names
-
 		datagen = ImageDataGenerator(
 			dtype = 'int32', # has no effect on the output... probably a bug?  only outputs float32
 			preprocessing_function = preprocess_image,
@@ -110,16 +104,16 @@ def load_and_preprocess_dataset(data_src = 'tfds'):
 			)
 
 		# load and iterate training dataset
-		train_set = datagen.flow_from_directory(os.path.join(data_dir,'train'), class_mode='sparse', batch_size=batch_size, target_size = input_size, classes = class_names)
-		val_set = datagen.flow_from_directory(os.path.join(data_dir,'val'), class_mode='sparse', batch_size = batch_size, target_size = input_size, classes = class_names)
-		test_set = datagen.flow_from_directory(os.path.join(data_dir,'test'), class_mode='sparse', batch_size=batch_size, target_size = input_size, classes = class_names)
+		train_set = datagen.flow_from_directory(os.path.join(data_dir,'train'), class_mode='sparse', batch_size=batch_size, target_size = input_size, classes = CLASS_NAMES)
+		val_set = datagen.flow_from_directory(os.path.join(data_dir,'val'), class_mode='sparse', batch_size = batch_size, target_size = input_size, classes = CLASS_NAMES)
+		test_set = datagen.flow_from_directory(os.path.join(data_dir,'test'), class_mode='sparse', batch_size=batch_size, target_size = input_size, classes = CLASS_NAMES)
 		## WARNING: 'target_size' down-scales without cropping (i.e. squeezes aspect ratio)
 		
 		info_dict = {
 			'batch_size': batch_size,
 			'data_dir': data_dir,
 			'image_shape': [input_size[0],input_size[1],3],
-			'labels': class_names,
+			'labels': CLASS_NAMES,
 			'train_size': train_set.samples,
 			'val_size': val_set.samples,
 			'test_size': test_set.samples,
@@ -157,13 +151,13 @@ def save_model(model, model_name, version):
 def train_model(model, base_model, train_set, val_set, test_set, info):
 	print("\nTraining the model...")
 	early_stopping_cb = keras.callbacks.EarlyStopping( #stops training if error hasnt improved in #epochs = patience
-            patience = 4, 
+            patience = EARLY_STOPPING_PATIENCE, 
             restore_best_weights = True,
             )
 	#freeze the transfer layers for first few epochs of training and start training.  
 	for layer in base_model.layers:
 	    layer.trainable = False
-	optimizer = keras.optimizers.Nadam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999)
+	optimizer = keras.optimizers.Nadam(learning_rate=LR_FIRST_ROUND, beta_1=0.9, beta_2=0.999)
 	model.compile(
 	    loss = "sparse_categorical_crossentropy", 
 	    optimizer = optimizer, 
@@ -171,7 +165,7 @@ def train_model(model, base_model, train_set, val_set, test_set, info):
 	    )
 	history = model.fit(
 	    train_set, 
-	    epochs = 1, # was 10, reducing to save runtime
+	    epochs = EPOCHS_FIRST_ROUND, # was 10, reducing to save runtime
 	    steps_per_epoch = info['train_size']//info['batch_size'], 
 	    validation_data = val_set,
 	    validation_steps = info['val_size']//info['batch_size'], 
@@ -181,7 +175,7 @@ def train_model(model, base_model, train_set, val_set, test_set, info):
 	# then unfreeze and continue training
 	for layer in base_model.layers:
 	    layer.trainable = True
-	optimizer = keras.optimizers.Nadam(learning_rate=0.000005, beta_1=0.9, beta_2=0.999)
+	optimizer = keras.optimizers.Nadam(learning_rate=LR_SECOND_ROUND, beta_1=0.9, beta_2=0.999)
 	model.compile(
 	    loss = "sparse_categorical_crossentropy", 
 	    optimizer = optimizer, 
@@ -189,7 +183,7 @@ def train_model(model, base_model, train_set, val_set, test_set, info):
 	    )
 	history = model.fit(
 	    train_set, 
-	    epochs = 1, ## was 200, reducing to save runtime
+	    epochs = EPOCHS_SECOND_ROUND, 
 	    steps_per_epoch = info['train_size']//info['batch_size'], 
 	    validation_data = val_set,
 	    validation_steps = info['val_size']//info['batch_size'], 
@@ -237,17 +231,10 @@ def load_images_from_folder(folder_path, verbose = True):
 						process_folder(local_file)
 					else:
 						image_class = os.path.basename(os.path.dirname(local_file))
-						if image_class == 'rock':
-							class_index = 0
-						elif image_class == 'paper':
-							class_index = 1
-						elif image_class == 'scissors':
-							class_index = 2
-						elif image_class == 'none':
-							class_index = 3
-						else:
-							class_index = None
-							print(f"unknown class: {image_class}")
+						class_index = None
+						for i in range(len(CLASS_NAMES)):
+							if image_class == CLASS_NAME[i]:
+								class_index = i
 						if verbose:
 							print(f"Loading '{local_file}'... class = '{image_class}' [{class_index}]")
 						new_image = {
@@ -263,6 +250,16 @@ def load_images_from_folder(folder_path, verbose = True):
 
 
 if __name__ == '__main__':
-    run()
+	# load the training dataset
+	train_set, val_set, test_set, info = load_and_preprocess_dataset(data_src = DATA_SOURCE)
+	# create and train the model
+	model, base_model = create_model(num_classes = len(info["labels"]))
+	# print(model.summary())
+	train_model(model, base_model, train_set, val_set, test_set, info)
+	# save model locally
+	save_model(model, MODEL_NAME, MODEL_VERSION)
+	# convert to tflite & save
+	tflite_model = convert_to_tflite(model, save_model = True)
+	# convert to tfjs and save
 
 
