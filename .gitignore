@@ -1,3 +1,4 @@
 **/venv
 .DS_store
 *.pyc
+RPS_webcam_js/.gcloudignore
