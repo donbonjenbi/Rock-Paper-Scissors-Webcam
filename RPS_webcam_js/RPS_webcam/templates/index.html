@@ -1,0 +1,43 @@
+<html>
+  <head>
+
+    <title>Rock Paper Scissors</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  </head>
+  
+  <body>
+
+	<div class="header">
+		<div class="intro_block">
+			<div class="intro_left"> </div>
+			<div class="intro_right"> </div>
+		</div>
+	</div>
+
+	<div class="site_wrapper">
+
+	<h1>Ready...?  Hold up a Rock, Paper, or Scissors</h1>
+	
+	<!-- <form method="post" action="/">
+		Save Image: 
+		<input type="submit" name = "capture_button" value="rock">
+		<input type="submit" name = "capture_button" value="paper">
+		<input type="submit" name = "capture_button" value="scissors">
+		<input type="submit" name = "capture_button" value="none">
+	</form> -->
+	<iframe id="content_frame" name="I1" scrolling="no" src="/video_feed">
+		Your browser does not support inline frames or is currently configured not to display inline frames.
+	</iframe>
+
+	<div class="outtro_block">
+		<div class="outtro_text">Created by Jon Denby</div>
+		<div class="outtro_disclaimer">Privacy notice:  This video feed is running 100% locally within your browser. It is not being recorded, saved, or stored in any form.</div>
+	</div>
+	</div>
+
+  </body>
+
+
+
+</html>
