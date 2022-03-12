@@ -6,7 +6,7 @@ imutils==0.5.3
 Jinja2==2.11.2
 Werkzeug==0.16.0
 itsdangerous==1.1.0
-Pillow==7.1.1
+Pillow==9.0.1
 MarkupSafe==1.1.1
 
 
